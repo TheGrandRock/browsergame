@@ -222,13 +222,47 @@ function App({ oidcAuth }: AppProps) {
         )}
       </nav>
       {view === "galaxy" && (
-        <GalaxyMap
-          myIdentity={identity ?? undefined}
-          onSelectSystem={(id) => {
-            setSelectedSystemId(id);
-            setView("system");
-          }}
-        />
+        <>
+          {fleetMode && (
+            <div
+              style={{
+                background: "#1a2a1a",
+                border: "1px solid #44ff8866",
+                borderRadius: 8,
+                padding: "10px 16px",
+                marginBottom: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <span style={{ color: "#44ff88", fontSize: "0.9rem" }}>
+                🚀 Fleet mode — click a system to pick a target planet
+              </span>
+              <button
+                style={{
+                  background: "#3a1a1a",
+                  color: "#ff8888",
+                  border: "1px solid #ff888833",
+                  borderRadius: 6,
+                  padding: "3px 12px",
+                  cursor: "pointer",
+                  fontSize: "0.8rem",
+                }}
+                onClick={() => setFleetMode(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+          <GalaxyMap
+            myIdentity={identity ?? undefined}
+            onSelectSystem={(id) => {
+              setSelectedSystemId(id);
+              setView("system");
+            }}
+          />
+        </>
       )}
 
       {view === "system" && selectedSystemId !== null && (
@@ -240,7 +274,6 @@ function App({ oidcAuth }: AppProps) {
             setView("base");
           }}
           onBack={() => {
-            setFleetMode(false);
             setView("galaxy");
           }}
           onSendFleet={
@@ -588,9 +621,8 @@ function App({ oidcAuth }: AppProps) {
                             })
                           }
                           onSendFleet={() => {
-                            setSelectedSystemId(planet.systemId);
                             setFleetMode(true);
-                            setView("system");
+                            setView("galaxy");
                           }}
                         />
                       );

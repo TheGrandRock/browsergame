@@ -123,7 +123,7 @@ export function SolarSystemView({
         planet.ownerId != null &&
         planet.ownerId.isEqual(myIdentity);
       const isSource = sourcePlanetId != null && planet.id === sourcePlanetId;
-      const isTargetable = onSendFleet != null && !isOwned;
+      const isTargetable = onSendFleet != null && !isSource && !isMine;
 
       const planetRadius = isMine ? 9 : isOwned ? 7 : isHovered ? 8 : 6;
 
@@ -183,8 +183,8 @@ export function SolarSystemView({
         ? "🚀 Origin"
         : isMine
           ? (planet.name ?? "Your Colony")
-          : isOwned
-            ? (planet.name ?? "Colonized")
+          : isTargetable && isOwned
+            ? `→ ${planet.name ?? "Colonized"}`
             : isTargetable
               ? `→ Slot ${planet.slotIndex + 1}`
               : `Slot ${planet.slotIndex + 1}`;
@@ -293,7 +293,12 @@ export function SolarSystemView({
       if (hit !== null) {
         const clickedPlanet = systemPlanets.find((p) => p.id === hit);
         if (onSendFleet != null) {
-          if (clickedPlanet?.ownerId == null) {
+          const isSource = sourcePlanetId != null && hit === sourcePlanetId;
+          const isMine =
+            myIdentity != null &&
+            clickedPlanet?.ownerId != null &&
+            clickedPlanet.ownerId.isEqual(myIdentity);
+          if (!isSource && !isMine) {
             onSendFleet(hit);
           }
         } else if (
@@ -334,7 +339,7 @@ export function SolarSystemView({
           System {system.systemIndex + 1}
           {onSendFleet != null ? (
             <span style={{ color: "#44ff88", marginLeft: 12 }}>
-              🚀 Fleet mode — click an unclaimed planet to send your Explorer
+              🚀 Fleet mode — click any planet to send your Explorer
             </span>
           ) : myPlanet ? (
             <span style={{ color: "#7fc8ff", marginLeft: 12 }}>
