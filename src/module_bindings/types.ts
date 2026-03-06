@@ -114,3 +114,13 @@ export const SolarSystem = __t.object("SolarSystem", {
 });
 export type SolarSystem = __Infer<typeof SolarSystem>;
 
+export const VisitorLog = __t.object("VisitorLog", {
+  id: __t.u64(),
+  planetOwnerId: __t.identity(),
+  visitedPlanetId: __t.u64(),
+  visitorIdentity: __t.identity(),
+  visitorName: __t.option(__t.string()),
+  arrivedAt: __t.timestamp(),
+});
+export type VisitorLog = __Infer<typeof VisitorLog>;
+

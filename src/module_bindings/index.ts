@@ -55,6 +55,7 @@ import PlanetRow from "./planet_table";
 import PlayerRow from "./player_table";
 import ReturnMissionRow from "./return_mission_table";
 import SolarSystemRow from "./solar_system_table";
+import VisitorLogRow from "./visitor_log_table";
 
 /** Type-only namespace exports for generated type groups. */
 
@@ -191,6 +192,20 @@ const tablesSchema = __schema({
       { name: 'solar_system_id_key', constraint: 'unique', columns: ['id'] },
     ],
   }, SolarSystemRow),
+  visitor_log: __table({
+    name: 'visitor_log',
+    indexes: [
+      { name: 'id', algorithm: 'btree', columns: [
+        'id',
+      ] },
+      { name: 'visitor_log_planet_owner', algorithm: 'btree', columns: [
+        'planetOwnerId',
+      ] },
+    ],
+    constraints: [
+      { name: 'visitor_log_id_key', constraint: 'unique', columns: ['id'] },
+    ],
+  }, VisitorLogRow),
 });
 
 /** The schema information for all reducers in this module. This is defined the same way as the reducers would have been defined in the server, except the body of the reducer is omitted in code generation. */
