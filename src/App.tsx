@@ -125,6 +125,7 @@ function App({ oidcAuth }: AppProps) {
   const [playerNameInput, setPlayerNameInput] = useState("");
   const [editingPlanetName, setEditingPlanetName] = useState(false);
   const [planetNameInput, setPlanetNameInput] = useState("");
+  const [planetNameError, setPlanetNameError] = useState("");
 
   if (!connected || !identity) {
     return (
@@ -342,22 +343,27 @@ function App({ oidcAuth }: AppProps) {
                     <form
                       onSubmit={(e) => {
                         e.preventDefault();
+                        setPlanetNameError("");
                         setPlanetName({
                           planetId: planet.id,
                           name: planetNameInput,
+                        }).then(() => {
+                          setEditingPlanetName(false);
+                        }).catch((err: unknown) => {
+                          setPlanetNameError(err instanceof Error ? err.message : String(err));
                         });
-                        setEditingPlanetName(false);
                       }}
-                      style={{ display: "inline-flex", gap: 8, marginLeft: 12 }}
+                      style={{ display: "inline-flex", flexWrap: "wrap", gap: 8, marginLeft: 12, alignItems: "center" }}
                     >
                       <input
                         autoFocus
                         value={planetNameInput}
-                        onChange={(e) => setPlanetNameInput(e.target.value)}
+                        onChange={(e) => { setPlanetNameInput(e.target.value); setPlanetNameError(""); }}
                         style={{
                           ...inputStyle,
                           fontSize: "0.9rem",
                           padding: "2px 8px",
+                          borderColor: planetNameError ? "#f66" : undefined,
                         }}
                         placeholder="Planet name"
                       />
@@ -367,10 +373,15 @@ function App({ oidcAuth }: AppProps) {
                       <button
                         type="button"
                         style={{ ...btnSmallStyle, background: "#555" }}
-                        onClick={() => setEditingPlanetName(false)}
+                        onClick={() => { setEditingPlanetName(false); setPlanetNameError(""); }}
                       >
                         ✕
                       </button>
+                      {planetNameError && (
+                        <span style={{ color: "#f66", fontSize: "0.75rem", width: "100%", marginTop: 2 }}>
+                          {planetNameError}
+                        </span>
+                      )}
                     </form>
                   ) : (
                     <>
