@@ -184,7 +184,7 @@ export function SolarSystemView({
         : isMine
           ? (planet.name ?? "Your Colony")
           : isOwned
-            ? "Colonized"
+            ? (planet.name ?? "Colonized")
             : isTargetable
               ? `→ Slot ${planet.slotIndex + 1}`
               : `Slot ${planet.slotIndex + 1}`;
@@ -205,7 +205,7 @@ export function SolarSystemView({
       ctx.textAlign = "center";
       ctx.fillText(labelText, px, py - planetRadius - 6);
 
-      if (isMine || isHovered) {
+      if (isMine) {
         ctx.fillStyle = "#555";
         ctx.font = "9px sans-serif";
         ctx.fillText(
