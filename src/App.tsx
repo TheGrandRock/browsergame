@@ -337,11 +337,12 @@ function App({ oidcAuth }: AppProps) {
             <>
               {/* Planet */}
               <section style={sectionStyle}>
-                <h2 style={sectionHeader}>
-                  Planet
-                  {editingPlanetName ? (
-                    <form
-                      onSubmit={(e) => {
+                 <h2 style={sectionHeader}>
+                   Planet
+                   <span style={{ textTransform: "none" }}>
+                   {editingPlanetName ? (
+                     <form
+                       onSubmit={(e) => {
                         e.preventDefault();
                         setPlanetNameError("");
                         setPlanetName({
@@ -405,9 +406,10 @@ function App({ oidcAuth }: AppProps) {
                       >
                         ✏️
                       </button>
-                    </>
+                     </>
                   )}
-                </h2>
+                   </span>
+                 </h2>
 
                 <div
                   style={{
