@@ -161,6 +161,22 @@ pub struct ExpeditionLog {
     pub completed_at: spacetimedb::Timestamp,
 }
 
+#[spacetimedb::table(
+    accessor = visitor_log,
+    public,
+    index(accessor = visitor_log_planet_owner, btree(columns = [planet_owner_id]))
+)]
+pub struct VisitorLog {
+    #[primary_key]
+    #[auto_inc]
+    pub id: u64,
+    pub planet_owner_id: spacetimedb::Identity,
+    pub visited_planet_id: u64,
+    pub visitor_identity: spacetimedb::Identity,
+    pub visitor_name: Option<String>,
+    pub arrived_at: spacetimedb::Timestamp,
+}
+
 #[spacetimedb::table(accessor = resource_tick, scheduled(tick_resources))]
 pub struct ResourceTick {
     #[primary_key]
@@ -274,6 +290,27 @@ pub fn arrive_fleet(ctx: &ReducerContext, arg: FleetMission) -> Result<(), Strin
         roll_encounter(now_micros, target.as_ref(), source.as_ref());
 
     let arrive_back = ctx.timestamp + std::time::Duration::from_micros(return_delay_us);
+
+    if let Some(ref t) = target {
+        if let Some(target_owner_id) = t.owner_id {
+            if target_owner_id != arg.owner_id {
+                let visitor_name = ctx
+                    .db
+                    .player()
+                    .identity()
+                    .find(arg.owner_id)
+                    .and_then(|p| p.name);
+                ctx.db.visitor_log().insert(VisitorLog {
+                    id: 0,
+                    planet_owner_id: target_owner_id,
+                    visited_planet_id: arg.target_planet_id,
+                    visitor_identity: arg.owner_id,
+                    visitor_name,
+                    arrived_at: ctx.timestamp,
+                });
+            }
+        }
+    }
 
     ctx.db.return_mission().insert(ReturnMission {
         scheduled_id: 0,
@@ -796,9 +833,24 @@ pub fn send_fleet(
 
 #[spacetimedb::reducer]
 pub fn set_planet_name(ctx: &ReducerContext, planet_id: u64, name: String) -> Result<(), String> {
+    use rustrict::CensorStr;
     let trimmed = name.trim().to_string();
     if trimmed.is_empty() {
         return Err("Name must not be empty".to_string());
+    }
+    if trimmed.len() > 32 {
+        return Err("Name too long (max 32 characters)".to_string());
+    }
+    if !trimmed
+        .chars()
+        .all(|c| c.is_alphanumeric() || c == ' ' || c == '-' || c == '\'')
+    {
+        return Err(
+            "Name may only contain letters, numbers, spaces, hyphens and apostrophes".to_string(),
+        );
+    }
+    if trimmed.is_inappropriate() {
+        return Err("Name contains inappropriate content".to_string());
     }
 
     let p = ctx
