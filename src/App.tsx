@@ -116,6 +116,7 @@ function App({ oidcAuth }: AppProps) {
   const [fleetMissions] = useTable(tables.fleet_mission);
   const [returnMissions] = useTable(tables.return_mission);
   const [expeditionLogs] = useTable(tables.expedition_log);
+  const [visitorLogs] = useTable(tables.visitor_log);
 
   const [view, setView] = useState<View>("galaxy");
   const [selectedSystemId, setSelectedSystemId] = useState<number | null>(null);
@@ -168,6 +169,9 @@ function App({ oidcAuth }: AppProps) {
     : [];
   const myExpeditionLogs = identity
     ? expeditionLogs.filter((l) => l.ownerId.isEqual(identity))
+    : [];
+  const myVisitorLogs = identity
+    ? visitorLogs.filter((v) => v.planetOwnerId.isEqual(identity))
     : [];
 
   return (
@@ -499,6 +503,28 @@ function App({ oidcAuth }: AppProps) {
                       .slice(0, 10)
                       .map((log) => (
                         <ExpeditionLogRow key={log.id.toString()} log={log} />
+                      ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Visitors */}
+              {myVisitorLogs.length > 0 && (
+                <section style={sectionStyle}>
+                  <h2 style={sectionHeader}>Visitors</h2>
+                  <div
+                    style={{ display: "flex", flexDirection: "column", gap: 6 }}
+                  >
+                    {[...myVisitorLogs]
+                      .sort((a, b) =>
+                        Number(
+                          b.arrivedAt.microsSinceUnixEpoch -
+                            a.arrivedAt.microsSinceUnixEpoch,
+                        ),
+                      )
+                      .slice(0, 10)
+                      .map((entry) => (
+                        <VisitorLogRow key={entry.id.toString()} entry={entry} planets={planets} />
                       ))}
                   </div>
                 </section>
@@ -1231,6 +1257,55 @@ function ExpeditionLogRow({ log }: { log: ExpeditionLogEntry }) {
             Nothing found
           </span>
         )}
+      </div>
+      <div style={{ color: "#555", fontSize: "0.72rem" }}>{timeLabel}</div>
+    </div>
+  );
+}
+
+type VisitorLogEntry = {
+  id: bigint;
+  planetOwnerId: unknown;
+  visitedPlanetId: bigint;
+  visitorIdentity: unknown;
+  visitorName: string | null | undefined;
+  arrivedAt: { microsSinceUnixEpoch: bigint };
+};
+
+function VisitorLogRow({
+  entry,
+  planets,
+}: {
+  entry: VisitorLogEntry;
+  planets: readonly PlanetRow[];
+}) {
+  const visitedPlanet = planets.find((p) => p.id === entry.visitedPlanetId);
+  const planetLabel = visitedPlanet
+    ? (visitedPlanet.name ??
+      `System ${(visitedPlanet as { systemId?: number }).systemId ?? "?"} · Slot ${(visitedPlanet as { slotIndex?: number }).slotIndex != null ? (visitedPlanet as { slotIndex: number }).slotIndex + 1 : "?"}`)
+    : `Planet #${entry.visitedPlanetId}`;
+  const date = new Date(Number(entry.arrivedAt.microsSinceUnixEpoch / 1000n));
+  const timeLabel = date.toLocaleString();
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        background: "#1e2030",
+        borderRadius: 6,
+        padding: "8px 14px",
+        border: "1px solid #333",
+      }}
+    >
+      <div>
+        <span style={{ color: "#7fc8ff", fontWeight: "bold", fontSize: "0.85rem" }}>
+          🛸 {entry.visitorName ?? "(unknown)"}
+        </span>
+        <span style={{ color: "#666", fontSize: "0.78rem", marginLeft: 10 }}>
+          visited {planetLabel}
+        </span>
       </div>
       <div style={{ color: "#555", fontSize: "0.72rem" }}>{timeLabel}</div>
     </div>
