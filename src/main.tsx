@@ -48,6 +48,41 @@ function SpacetimeWrapperWithAuth() {
     );
   }
 
+  if (!auth.isAuthenticated) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          gap: "1.5rem",
+          fontFamily: "monospace",
+          background: "#0e0e1a",
+          color: "#e0e0e0",
+        }}
+      >
+        <div style={{ fontSize: "2rem" }}>🚀 Space Colony</div>
+        <div style={{ color: "#888", fontSize: "0.9rem" }}>Sign in to play</div>
+        <button
+          onClick={() => auth.signinRedirect()}
+          style={{
+            background: "#1a3a5a",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "10px 28px",
+            fontSize: "1rem",
+            cursor: "pointer",
+          }}
+        >
+          Sign In
+        </button>
+      </div>
+    );
+  }
+
   const token = auth.user?.access_token ?? localStorage.getItem(TOKEN_KEY) ?? undefined;
 
   const connectionBuilder = DbConnection.builder()
