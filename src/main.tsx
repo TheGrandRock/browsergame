@@ -28,10 +28,10 @@ function onSigninCallback() {
   window.history.replaceState({}, document.title, window.location.pathname);
 }
 
-function SpacetimeWrapper() {
-  const auth = CLIENT_ID ? useAuth() : null; // eslint-disable-line react-hooks/rules-of-hooks
+function SpacetimeWrapperWithAuth() {
+  const auth = useAuth();
 
-  if (auth?.isLoading) {
+  if (auth.isLoading) {
     return (
       <div
         style={{
@@ -48,14 +48,14 @@ function SpacetimeWrapper() {
     );
   }
 
-  const token = auth?.user?.access_token ?? localStorage.getItem(TOKEN_KEY) ?? undefined;
+  const token = auth.user?.access_token ?? localStorage.getItem(TOKEN_KEY) ?? undefined;
 
   const connectionBuilder = DbConnection.builder()
     .withUri(HOST)
     .withDatabaseName(DB_NAME)
     .withToken(token)
     .onConnect((conn: DbConnection, identity: Identity, newToken: string) => {
-      if (!auth?.user) localStorage.setItem(TOKEN_KEY, newToken);
+      if (!auth.user) localStorage.setItem(TOKEN_KEY, newToken);
       console.log("Connected to SpacetimeDB with identity:", identity.toHexString());
       conn.subscriptionBuilder().subscribeToAllTables();
     })
@@ -71,20 +71,44 @@ function SpacetimeWrapper() {
   );
 }
 
+function SpacetimeWrapperNoAuth() {
+  const token = localStorage.getItem(TOKEN_KEY) ?? undefined;
+
+  const connectionBuilder = DbConnection.builder()
+    .withUri(HOST)
+    .withDatabaseName(DB_NAME)
+    .withToken(token)
+    .onConnect((conn: DbConnection, identity: Identity, newToken: string) => {
+      localStorage.setItem(TOKEN_KEY, newToken);
+      console.log("Connected to SpacetimeDB with identity:", identity.toHexString());
+      conn.subscriptionBuilder().subscribeToAllTables();
+    })
+    .onDisconnect(() => console.log("Disconnected from SpacetimeDB"))
+    .onConnectError((_ctx: ErrorContext, err: Error) =>
+      console.error("Error connecting to SpacetimeDB:", err),
+    );
+
+  return (
+    <SpacetimeDBProvider connectionBuilder={connectionBuilder}>
+      <App oidcAuth={null} />
+    </SpacetimeDBProvider>
+  );
+}
+
 const root = createRoot(document.getElementById("root")!);
 
 if (oidcConfig) {
   root.render(
     <StrictMode>
       <AuthProvider {...oidcConfig} onSigninCallback={onSigninCallback}>
-        <SpacetimeWrapper />
+        <SpacetimeWrapperWithAuth />
       </AuthProvider>
     </StrictMode>,
   );
 } else {
   root.render(
     <StrictMode>
-      <SpacetimeWrapper />
+      <SpacetimeWrapperNoAuth />
     </StrictMode>,
   );
 }
