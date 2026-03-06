@@ -222,18 +222,23 @@ function App({ oidcAuth }: AppProps) {
         )}
       </nav>
       {view === "galaxy" && (
-        <>
+        <div style={{ position: "relative" }}>
           {fleetMode && (
             <div
               style={{
-                background: "#1a2a1a",
+                position: "absolute",
+                top: 8,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 10,
+                background: "#1a2a1aee",
                 border: "1px solid #44ff8866",
                 borderRadius: 8,
-                padding: "10px 16px",
-                marginBottom: 8,
+                padding: "8px 16px",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
+                gap: 16,
+                whiteSpace: "nowrap",
               }}
             >
               <span style={{ color: "#44ff88", fontSize: "0.9rem" }}>
@@ -262,7 +267,7 @@ function App({ oidcAuth }: AppProps) {
               setView("system");
             }}
           />
-        </>
+        </div>
       )}
 
       {view === "system" && selectedSystemId !== null && (
